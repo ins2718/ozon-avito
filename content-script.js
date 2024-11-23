@@ -105,7 +105,7 @@ let props = {
 		ozonReturns: /^https:\/\/turbo-pvz\.ozon\.ru\/returns-from-customer\/?(?:\?.*)?$/, // озон - возвраты
 		ozonReturnsAction: /^https:\/\/turbo-pvz\.ozon\.ru\/returns-from-customer\/(\d+)\/?(?:\?.*)?$/, // озон - возвраты
 		ozonLogin: /^https:\/\/turbo-pvz\.ozon\.ru\/ozonid\/?(?:\?.*)?$/, // озон - вход
-		ozonOutboard: /^https:\/\/turbo-pvz\.ozon\.ru\/outbound(?:.*)?$/, // озон - возвраты курьеру
+		ozonOutbound: /^https:\/\/turbo-pvz\.ozon\.ru\/outbound(?:.*)?$/, // озон - возвраты курьеру
 		ozonInventory: /^https:\/\/turbo-pvz\.ozon\.ru\/inventory(?:.*)?$/, // инвентаризация
 		ozonSearch: /^https:\/\/turbo-pvz\.ozon\.ru\/search\/?(?:.*)?$/, // поиск
 	}
@@ -267,8 +267,19 @@ const buffer = {
 				const data = this.data;
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play(); // .then(() => confirm('Возможно это засыл, отправить код на проверку?') && this.send(data));
 			}
-		} else if (pageType === "ozonOutboard") {
-			this.send();
+		} else if (pageType === "ozonOutbound") {
+			const item = document.querySelector("div[tabindex] input:not([readonly])");
+			console.log(item, code);
+			if(item) {
+				let x = "";
+				code.split("").forEach((symbol) => {
+					x += symbol;
+					item.value = x;
+					item.dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
+				});
+			} else {
+				this.send();
+			}
 		} else if (pageType === "ozonInventory" || pageType === "ozonSearch") {
 			if (this.findOzonItem(code)) {
 				this.send();
