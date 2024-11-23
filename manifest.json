@@ -1,0 +1,29 @@
+{
+    "name": "Ozon-Avito",
+    "description": "",
+    "version": "1.0",
+    "manifest_version": 3,
+    "icons": {},
+    "action": {},
+    "permissions": ["notifications", "tabs", "activeTab", "storage", "webRequest"],
+    "background":{
+		"service_worker": "background.js",
+		"type": "module"
+	},
+	"content_scripts": [
+        {
+            "matches": [
+				"<all_urls>",
+				"https://pvz.avito.ru/*",
+				"https://turbo-pvz.ozon.ru/*"
+			],
+            "js": ["content-script.js"]
+        }
+    ],
+	"web_accessible_resources": [
+		{
+			"resources": [ "x.mp3" ],
+			"matches": [ "https://*/*" ]
+		}
+	]
+}
