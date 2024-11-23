@@ -408,7 +408,11 @@ const buffer = {
 		}
 	},
 	isEventAccepted() {
-		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || ["avitoAcceptCheckDocument"].includes(this.getPageType())) {
+		const pageType = this.getPageType();
+		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || ["avitoAcceptCheckDocument"].includes(pageType)) {
+			return true;
+		}
+		if (pageType === "avitoDeliverCode" && symbol === "Enter") {
 			return true;
 		}
 		const element = document.activeElement;
