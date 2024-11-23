@@ -409,6 +409,7 @@ const buffer = {
 	},
 	isEventAccepted() {
 		const pageType = this.getPageType();
+		const symbol = this.event.key;
 		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || ["avitoAcceptCheckDocument"].includes(pageType)) {
 			return true;
 		}
@@ -425,7 +426,6 @@ const buffer = {
 		if (this.getPageType() === "avitoAcceptCheckDocument") {
 			template = /^[\d\*\%A-Z<А-Я]$/;
 		}
-		const symbol = this.event.key;
 		if (symbol.match(template) || symbol === "Enter") {
 			return false;
 		}
