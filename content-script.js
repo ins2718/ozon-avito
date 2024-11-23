@@ -134,6 +134,13 @@ const buffer = {
 		if (element && element.tagName === "INPUT") {
 			element.value = element.value.substring(0, element.selectionStart) + data + element.value.substring(element.selectionEnd);
 			element.dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
+		} else if (this.getPageType() === "avitoDeliverCode" && document.activeElement && document.activeElement.tagName !== "INPUT") {
+			const elements = document.getElementsByTagName("input");
+			if (elements.length === 1) {
+				elements[0].focus();
+				elements[0].value = data;
+				elements[0].dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
+			}
 		} else {
 			console.log(`send ${data} to window`);
 			data.split('').forEach(key => document.dispatchEvent(new KeyboardEvent('keydown', { key })));
@@ -268,7 +275,7 @@ const buffer = {
 		} else {
 			if (this.findOzonItem(code, "income")) {
 				chrome.runtime.sendMessage({ code, type: "ozon-receive" });
-			} else if(this.findOzonItem(code, "current")) {
+			} else if (this.findOzonItem(code, "current")) {
 				chrome.runtime.sendMessage({ code, type: "ozon-search" });
 			} else {
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play();
@@ -398,7 +405,7 @@ const buffer = {
 		}
 	},
 	isEventAccepted() {
-		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || ["avitoAcceptCheckDocument", "avitoDeliverCode"].includes(this.getPageType())) {
+		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || ["avitoAcceptCheckDocument"].includes(this.getPageType())) {
 			return true;
 		}
 		const element = document.activeElement;
