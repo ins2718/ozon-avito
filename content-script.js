@@ -104,6 +104,7 @@ let props = {
 		ozonReturnsAction: /^https:\/\/turbo-pvz\.ozon\.ru\/returns-from-customer\/(\d+)\/?(?:\?.*)?$/, // озон - возвраты
 		ozonLogin: /^https:\/\/turbo-pvz\.ozon\.ru\/ozonid\/?(?:\?.*)?$/, // озон - вход
 		ozonOutboard: /^https:\/\/turbo-pvz\.ozon\.ru\/outbound(?:.*)?$/, // озон - возвраты курьеру
+		ozonInventory: /^https:\/\/turbo-pvz\.ozon\.ru\/inventory(?:.*)?$/, // инвентаризация
 	}
 };
 let avitoItems = {};
@@ -239,8 +240,15 @@ const buffer = {
 				const data = this.data;
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play(); // .then(() => confirm('Возможно это засыл, отправить код на проверку?') && this.send(data));
 			}
-		} else if(pageType === "ozonOutboard" || pageType === "ozonOutboard") {
+		} else if(pageType === "ozonOutboard") {
 			this.send();
+		} else if(pageType === "ozonInventory") {
+			console.log(ozonCurrentItems.remains.find((item) => item.barcode === code || item.id == code));
+			if(ozonCurrentItems.remains.find((item) => item.barcode === code || item.id == code)) {
+				this.send();
+			} else {
+				(new Audio(chrome.runtime.getURL('x.mp3'))).play();
+			}
 		} else {
 			chrome.runtime.sendMessage({code, type: "ozon-receive"});
 		}
