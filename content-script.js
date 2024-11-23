@@ -103,6 +103,7 @@ let props = {
 		ozonReturns: /^https:\/\/turbo-pvz\.ozon\.ru\/returns-from-customer\/?(?:\?.*)?$/, // озон - возвраты
 		ozonReturnsAction: /^https:\/\/turbo-pvz\.ozon\.ru\/returns-from-customer\/(\d+)\/?(?:\?.*)?$/, // озон - возвраты
 		ozonLogin: /^https:\/\/turbo-pvz\.ozon\.ru\/ozonid\/?(?:\?.*)?$/, // озон - вход
+		ozonOutboard: /^https:\/\/turbo-pvz\.ozon\.ru\/outbound(?:.*)?$/, // озон - возвраты курьеру
 	}
 };
 let avitoItems = {};
@@ -238,6 +239,8 @@ const buffer = {
 				const data = this.data;
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play(); // .then(() => confirm('Возможно это засыл, отправить код на проверку?') && this.send(data));
 			}
+		} else if(pageType === "ozonOutboard" || pageType === "ozonOutboard") {
+			this.send();
 		} else {
 			chrome.runtime.sendMessage({code, type: "ozon-receive"});
 		}
@@ -365,7 +368,7 @@ const buffer = {
 		}
 	},
 	isEventAccepted() {
-		if(!this.event.isTrusted || this.event.ctrlKey || this.event.altKey) {
+		if(!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || this.getPageType() === "avitoAcceptCheckDocument") {
 			return true;
 		}
 		const element = document.activeElement;
