@@ -94,7 +94,7 @@ let props = {
 		avitoGive: /^https:\/\/pvz\.avito\.ru\/give\/?(?:\?.*)?$/, // авито - передача посылок курьеру
 		avitoInventory: /^https:\/\/pvz\.avito\.ru\/inventory\/?(?:\?.*)?$/, // авито - Заказы в пункте
 		avitoShelves: /^https:\/\/pvz\.avito\.ru\/shelves\/?(?:\?.*)?$/, // авито - Управление полками
-		
+
 		ozon: /^https:\/\/turbo-pvz\.ozon\.ru\/?(?:\?.*)?$/, // озон - главная
 		ozonOrders: /^https:\/\/turbo-pvz\.ozon\.ru\/orders\/?(?:\?.*)?$/, // озон - выдача <a href="/returns-from-customer/34374314">к возвратам</a>
 		ozonOrdersAction: /^https:\/\/turbo-pvz\.ozon\.ru\/orders\/client-new\/(\d+)\/?(?:\?.*)?$/, // озон - выдача конкретного заказа
@@ -105,13 +105,14 @@ let props = {
 		ozonLogin: /^https:\/\/turbo-pvz\.ozon\.ru\/ozonid\/?(?:\?.*)?$/, // озон - вход
 		ozonOutboard: /^https:\/\/turbo-pvz\.ozon\.ru\/outbound(?:.*)?$/, // озон - возвраты курьеру
 		ozonInventory: /^https:\/\/turbo-pvz\.ozon\.ru\/inventory(?:.*)?$/, // инвентаризация
+		ozonSearch: /^https:\/\/turbo-pvz\.ozon\.ru\/search\/?(?:.*)?$/, // поиск
 	}
 };
 let avitoItems = {};
 let ozonItems = {};
 let ozonCurrentItems = {};
 chrome.storage.sync.get("props", (result) => {
-    props = {...props, ...result.props};
+	props = { ...props, ...result.props };
 });
 
 const buffer = {
@@ -122,182 +123,196 @@ const buffer = {
 	event: null,
 	send(data) {
 		data = data ?? this.data;
-		if(!data) {
+		if (!data) {
 			return;
 		}
-		if(data[0] === "%") {
+		if (data[0] === "%") {
 			setTimeout(() => updateOzonInbound(), 2000);
 		}
 		const element = document.activeElement;
-		if(element && element.tagName === "INPUT") {
+		if (element && element.tagName === "INPUT") {
 			element.value = element.value.substring(0, element.selectionStart) + data + element.value.substring(element.selectionEnd);
 			element.dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
 		} else {
 			console.log(`send ${data} to window`);
-			data.split('').forEach(key => document.dispatchEvent(new KeyboardEvent('keydown', {key})));
+			data.split('').forEach(key => document.dispatchEvent(new KeyboardEvent('keydown', { key })));
 		}
 	},
 	pasteOzonCode(code, retry = 10) {
 		const elements = document.querySelectorAll("[data-testid='searchInput']");
-		if(elements.length === 1) {
+		if (elements.length === 1) {
 			elements[0].focus();
-			elements[0].value= code;
+			elements[0].value = code;
 			elements[0].dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
 			setTimeout(() => document.querySelector("[data-testid='searchButton']").click(), this.timeout);
 			return true;
 		}
-		if(retry > 0) {
+		if (retry > 0) {
 			setTimeout(() => this.pasteOzonCode(code, retry - 1), this.timeout);
 		}
 		return false;
 	},
 	pasteOzonReturnCode(code, retry = 10) {
 		const elements = document.querySelectorAll("form input");
-		if(elements.length === 1) {
+		if (elements.length === 1) {
 			elements[0].focus();
-			elements[0].value= code;
+			elements[0].value = code;
 			elements[0].dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
 			setTimeout(() => document.querySelector("form button[type='submit']").click(), this.timeout);
 			return true;
 		}
-		if(retry > 0) {
+		if (retry > 0) {
 			setTimeout(() => this.pasteOzonReturnCode(code, retry - 1), this.timeout);
 		}
 		return false;
 	},
 	pasteOzonReceiveCode(code, retry = 10) {
 		const element = document.querySelector("[class*=_sound] button");
-		if(element) {
-			code.split('').forEach(key => document.dispatchEvent(new KeyboardEvent('keydown', {key: key})));
+		if (element) {
+			code.split('').forEach(key => document.dispatchEvent(new KeyboardEvent('keydown', { key: key })));
 			return true;
 		}
-		if(retry > 0) {
+		if (retry > 0) {
 			setTimeout(() => this.pasteOzonReceiveCode(code, retry - 1), this.timeout);
 		}
 		return false;
 	},
 	pasteAvitoCode(code, retry = 10) {
 		const elements = document.getElementsByTagName("input");
-		if(elements.length === 1) {
+		if (elements.length === 1) {
 			elements[0].focus();
-			elements[0].value= code;
+			elements[0].value = code;
 			elements[0].dispatchEvent(new Event("input", { bubbles: true, cancelable: true }));
 			setTimeout(() => document.querySelector("button[type='submit']").click(), this.timeout);
 			return true;
 		}
-		if(retry > 0) {
+		if (retry > 0) {
 			setTimeout(() => this.pasteAvitoCode(code, retry - 1), this.timeout);
 		}
 		return false;
 	},
 	getCodeInfo() {
-		for(let type in props.barCodes) {
+		for (let type in props.barCodes) {
 			let m = this.data.match(props.barCodes[type]);
-			if(m) {
-				return {type, code: m[0]};
+			if (m) {
+				return { type, code: m[0] };
 			}
 		}
-		return {type: null, code: null};
+		return { type: null, code: null };
 	},
 	getPageType(url = null) {
 		url = url || document.location.href;
-		for(let key in props.pageTypes) {
+		for (let key in props.pageTypes) {
 			let m = url.match(props.pageTypes[key]);
-			if(m) {
+			if (m) {
 				return key;
 			}
 		}
 		return null;
 	},
 	enterOzonCode(code, pageType) {
-		if(pageType === "ozonOrders") {
+		if (pageType === "ozonOrders") {
 			this.pasteOzonCode(code);
-		} else if(pageType === "ozonReturns") {
+		} else if (pageType === "ozonReturns") {
 			this.pasteOzonReturnCode(code);
 		} else {
-			chrome.runtime.sendMessage({code, type: "ozon"});
+			chrome.runtime.sendMessage({ code, type: "ozon" });
 		}
 	},
 	enterOzonBoxCode(code, pageType) {
-		if(pageType !== "ozonReceive") {
-			chrome.runtime.sendMessage({code, type: "ozon-receive"});
+		if (pageType !== "ozonReceive") {
+			chrome.runtime.sendMessage({ code, type: "ozon-receive" });
 		} else {
 			this.send();
 		}
 	},
+	findOzonItem(code, type = "all") {
+		if (type === "all" || type === "income") {
+			const result = ozonItems.articles.find((item) => item.barcode === code || item.id == code);
+			if (result) {
+				return result;
+			}
+		}
+		if (type === "all" || type === "current") {
+			const result = ozonCurrentItems.remains.find((item) => item.barcode === code || item.id == code);
+			if (result) {
+				return result;
+			}
+		}
+		return null;
+	},
 	enterOzonItemCode(code, pageType) {
-		if(pageType === "ozonOrdersAction") {
-			const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e=>e.innerText);
-			if(codes.includes(code)) {
+		if (pageType === "ozonOrdersAction") {
+			const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e => e.innerText);
+			if (codes.includes(code)) {
 				this.send();
 			} else {
-				chrome.runtime.sendMessage({code, type: "ozon-receive", sendBack: true});
+				chrome.runtime.sendMessage({ code, type: "ozon-receive", sendBack: true });
 			}
-		} else if(pageType === "ozonReceive") {
-			if(ozonItems?.articles.map(item => item.name[0] === "i" ? item.name : item.id.toString()).includes(code)) {
+		} else if (pageType === "ozonReceive") {
+			if (this.findOzonItem(code)) {
 				this.send();
 			} else {
 				const data = this.data;
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play(); // .then(() => confirm('Возможно это засыл, отправить код на проверку?') && this.send(data));
 			}
-		} else if(pageType === "ozonOutboard") {
+		} else if (pageType === "ozonOutboard") {
 			this.send();
-		} else if(pageType === "ozonInventory") {
-			console.log(ozonCurrentItems.remains.find((item) => item.barcode === code || item.id == code));
-			if(ozonCurrentItems.remains.find((item) => item.barcode === code || item.id == code)) {
+		} else if (pageType === "ozonInventory" || pageType === "ozonSearch") {
+			if (this.findOzonItem(code)) {
 				this.send();
 			} else {
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play();
 			}
 		} else {
-			chrome.runtime.sendMessage({code, type: "ozon-receive"});
+			// chrome.runtime.sendMessage({ code, type: "ozon-receive" });
 		}
 	},
 	findAvitoItemCategory(code) {
-		for(let category of avitoItems.categories) {
-			for(let item of category.parcels) {
-				if(code === item.barcode) {
+		for (let category of avitoItems.categories) {
+			for (let item of category.parcels) {
+				if (code === item.barcode) {
 					return category.category;
-				}						
+				}
 			}
 		}
 		return null;
 	},
 	enterAvitoCode(code, pageType) {
-		if(pageType === "avitoGet") {
+		if (pageType === "avitoGet") {
 			this.pasteAvitoCode(code);
 			return;
 		}
 		const targetCategory = this.findAvitoItemCategory(code);
-		if(targetCategory === 'HAND_OVER_TO_CLIENT') { // на выдачу клиенту
-			if(pageType === "avitoDeliver") {
+		if (targetCategory === 'HAND_OVER_TO_CLIENT') { // на выдачу клиенту
+			if (pageType === "avitoDeliver") {
 				this.pasteAvitoCode(code);
 			} else {
-				chrome.runtime.sendMessage({code, type: "avito"});
+				chrome.runtime.sendMessage({ code, type: "avito" });
 			}
-		}  else if(targetCategory === 'HAND_OVER_TO_COURIER') { // передать курьеру
-			if(pageType === "avitoGive") {
+		} else if (targetCategory === 'HAND_OVER_TO_COURIER') { // передать курьеру
+			if (pageType === "avitoGive") {
 				this.pasteAvitoCode(code);
 			} else {
-				chrome.runtime.sendMessage({code, type: "avito-give"});
+				chrome.runtime.sendMessage({ code, type: "avito-give" });
 			}
 		} else {
-			if(pageType === "avitoAccept") {
+			if (pageType === "avitoAccept") {
 				this.pasteAvitoCode(code);
-			} else if(pageType === "avitoAccept2") {
+			} else if (pageType === "avitoAccept2") {
 				this.pasteAvitoCode(code);
-			} else if(pageType === "avitoDeliverRefuse") {
+			} else if (pageType === "avitoDeliverRefuse") {
 				this.pasteAvitoCode(code);
 			} else {
-				chrome.runtime.sendMessage({code, type: "avito-accept"});
+				chrome.runtime.sendMessage({ code, type: "avito-accept" });
 			}
 		}
 	},
 	enterAvitoListCode(code, pageType) {
-		if(pageType === "avitoGet") {
+		if (pageType === "avitoGet") {
 			this.pasteAvitoCode(code);
 		} else {
-			chrome.runtime.sendMessage({code, type: "avito-get"});
+			chrome.runtime.sendMessage({ code, type: "avito-get" });
 		}
 	},
 	enterPassportNational(name, number) {
@@ -311,20 +326,20 @@ const buffer = {
 	},
 	checkCode() {
 		console.log(this.data);
-		let {code, type} = this.getCodeInfo();
-		if(!type) {
+		let { code, type } = this.getCodeInfo();
+		if (!type) {
 			return false;
 		}
 		const pageType = this.getPageType();
 		console.log(type, code, pageType);
-		if(type === "passportNationalRu") {
+		if (type === "passportNationalRu") {
 			code = code.split("").map(s => s in RuEn ? RuEn[s] : s).join("");
 			type = "passportNational";
 		}
-		if(type === "passportNational") {
+		if (type === "passportNational") {
 			const name = code.substr(5, 39).toLowerCase().replace(/<+/g, " ").split("").map(s => s in passportMap ? passportMap[s] : s).join("").split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 			const number = (code.substr(44, 3) + code.substr(72, 1) + code.substr(47, 6)).replaceAll("O", "0");
-			if(document.querySelector("form>div:first-child+div select").value === "PASSPORT") {
+			if (document.querySelector("form>div:first-child+div select").value === "PASSPORT") {
 				this.enterPassportNational(name, number);
 			} else {
 				document.querySelector("form>div:first-child+div select").click();
@@ -336,31 +351,31 @@ const buffer = {
 			console.log(name + "\n" + number);
 			return true;
 		}
-		if(type === "ozonCodeTemplate") {
+		if (type === "ozonCodeTemplate") {
 			this.enterOzonCode(code, pageType);
 			return true;
 		}
-		if(type === "ozonBoxCodeTemplate") {
+		if (type === "ozonBoxCodeTemplate") {
 			this.enterOzonBoxCode(code, pageType);
 			return true;
 		}
-		if(type === "ozonSmallCodeRuTemplate") {
+		if (type === "ozonSmallCodeRuTemplate") {
 			this.enterOzonItemCode(code.replaceAll("ш", "i").replaceAll("Ш", "i"), pageType);
 			return true;
 		}
-		if(["ozonSmallCodeTemplate", "ozonLargeCodeTemplate"].includes(type)) {
+		if (["ozonSmallCodeTemplate", "ozonLargeCodeTemplate"].includes(type)) {
 			this.enterOzonItemCode(code, pageType);
 			return true;
 		}
-		if(type === "avitoCodeTemplate") {
+		if (type === "avitoCodeTemplate") {
 			this.enterAvitoCode(code, pageType);
 			return true;
 		}
-		if(type === "avitoGetRuTemplate") {
+		if (type === "avitoGetRuTemplate") {
 			code = code.toUpperCase().split("").map(s => s in RuEn ? RuEn[s] : s).join("");
 			type = "avitoGetTemplate";
 		}
-		if(type === "avitoGetTemplate") {
+		if (type === "avitoGetTemplate") {
 			this.enterAvitoListCode(code, pageType);
 			return true;
 		}
@@ -370,45 +385,45 @@ const buffer = {
 	reset() {
 		this.data = "";
 		this.lastUpdate = Date.now();
-		if(this.hTimeout) {
+		if (this.hTimeout) {
 			clearTimeout(this.hTimeout);
 			this.hTimeout = null;
 		}
 	},
 	isEventAccepted() {
-		if(!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || this.getPageType() === "avitoAcceptCheckDocument") {
+		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || this.getPageType() === "avitoAcceptCheckDocument") {
 			return true;
 		}
 		const element = document.activeElement;
-		if(element && element.tagName === "INPUT") {
-			if(element.selectionStart !== element.value.length) {
+		if (element && element.tagName === "INPUT") {
+			if (element.selectionStart !== element.value.length) {
 				return true;
 			}
 		}
 		let template = /^[\d\*\%\wА-Яа-я-]$/;
-		if(this.getPageType() === "avitoAcceptCheckDocument") {
+		if (this.getPageType() === "avitoAcceptCheckDocument") {
 			template = /^[\d\*\%A-Z<А-Я]$/;
 		}
 		const symbol = this.event.key;
-		if(symbol.match(template) || symbol === "Enter") {
+		if (symbol.match(template) || symbol === "Enter") {
 			return false;
 		}
 		return true;
 	},
 	addSymbol(event) {
 		this.event = event;
-		if(this.isEventAccepted()) {
+		if (this.isEventAccepted()) {
 			return;
 		}
 		event.stopImmediatePropagation();
 		event.preventDefault();
 		const symbol = event.key;
-		if(symbol === "Enter") {
+		if (symbol === "Enter") {
 			this.checkCode();
 			return this.reset();
 		}
 		this.data += symbol;
-		if(this.hTimeout) {
+		if (this.hTimeout) {
 			clearTimeout(this.hTimeout);
 		}
 		this.hTimeout = setTimeout(() => (this.hTimeout = null, this.send(), this.reset()), this.timeout)
@@ -420,25 +435,25 @@ document.addEventListener("keydown", (event) => {
 }, true);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "code") {
-		if(message.type === "ozon") {
+	if (message.action === "code") {
+		if (message.type === "ozon") {
 			buffer.pasteOzonCode(message.code);
-		} else if(message.type === "avito" || message.type === "avito-accept" || message.type === "avito-give" || message.type === "avito-get") {
+		} else if (message.type === "avito" || message.type === "avito-accept" || message.type === "avito-give" || message.type === "avito-get") {
 			buffer.pasteAvitoCode(message.code);
-		} else if(message.type === "ozon-receive") {
+		} else if (message.type === "ozon-receive") {
 			buffer.pasteOzonReceiveCode(message.code);
 		}
 		sendResponse({ response: "Message received in content script" });
-    } else if(message.action === "find-code") {
+	} else if (message.action === "find-code") {
 		const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e => e.innerText);
 		sendResponse({ response: codes.includes(message.code) });
 	}
 });
 
 function clickDownload(n = 10) {
-	if(buffer.getPageType() === "avitoAccept3") {
+	if (buffer.getPageType() === "avitoAccept3") {
 		document.querySelector("button").click()
-	} else if(n > 0) {
+	} else if (n > 0) {
 		setTimeout(() => clickDownload(), 1000);
 	}
 }
@@ -461,14 +476,14 @@ function addButton() {
 	button.style.fontFamily = "Inter, Arial, Helvetica, sans-serif";
 	button.addEventListener("click", () => {
 		const pageType = buffer.getPageType();
-		if(pageType === "ozonOrdersAction") {
+		if (pageType === "ozonOrdersAction") {
 			const m = document.location.href.match(props.pageTypes.ozonOrdersAction);
-			if(m) {
+			if (m) {
 				document.location.href = "/returns-from-customer/" + m[1];
 			}
-		} else if(pageType === "ozonReturnsAction") {
+		} else if (pageType === "ozonReturnsAction") {
 			const m = document.location.href.match(props.pageTypes.ozonReturnsAction);
-			if(m) {
+			if (m) {
 				document.location.href = "/orders/client-new/" + m[1];
 			}
 		}
@@ -480,32 +495,32 @@ async function main() {
 	avitoItems = (await chrome.storage.local.get("avitoItems"))?.avitoItems ?? {};
 	ozonItems = (await chrome.storage.local.get("ozonItems"))?.ozonItems ?? {};
 	ozonCurrentItems = (await chrome.storage.local.get("ozonCurrentItems"))?.ozonItems ?? {};
-	if(location.host === 'pvz.avito.ru') {
+	if (location.host === 'pvz.avito.ru') {
 		const resp = await fetch("https://pvz.avito.ru/service-abd-oper-facade/web/1/parcels/get-in-point", {
 			method: "POST",
-			body: JSON.stringify({pointId:1449}),
+			body: JSON.stringify({ pointId: 1449 }),
 			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
 			},
 		});
 		avitoItems = await resp.json();
-		await chrome.storage.local.set({avitoItems});
-	} else if(location.host === 'turbo-pvz.ozon.ru') {
+		await chrome.storage.local.set({ avitoItems });
+	} else if (location.host === 'turbo-pvz.ozon.ru') {
 		updateOzonInbound();
 		addButton();
 	}
 	navigation.addEventListener('navigate', (event) => {
 		const pageType = buffer.getPageType(event.destination.url);
-		if(pageType === "avitoAccept3") {
+		if (pageType === "avitoAccept3") {
 			setTimeout(() => clickDownload(), 1000);
 		}
 		const pluginButton = document.getElementById("plugin-button");
-		if(pluginButton) {
-			if(pageType === "ozonOrdersAction") {
+		if (pluginButton) {
+			if (pageType === "ozonOrdersAction") {
 				pluginButton.style.display = "block";
 				pluginButton.innerText = "К возвратам";
-			} else if(pageType === "ozonReturnsAction") {
+			} else if (pageType === "ozonReturnsAction") {
 				pluginButton.style.display = "block";
 				pluginButton.innerText = "К выдаче";
 			} else {
@@ -531,9 +546,9 @@ async function ozonRequest(url) {
 
 async function updateOzonInbound() {
 	ozonItems = await ozonRequest("https://turbo-pvz.ozon.ru/api/inbound/address_storage/pending-articles")
-	await chrome.storage.local.set({ozonItems});
+	await chrome.storage.local.set({ ozonItems });
 	ozonCurrentItems = await ozonRequest("https://turbo-pvz.ozon.ru/api/reports/agent/warehouse_remainsV2?filter=All&stateFilter=All&postingNumber=&take=1000&skip=0");
-	await chrome.storage.local.set({ozonCurrentItems});
+	await chrome.storage.local.set({ ozonCurrentItems });
 	console.log(ozonItems, ozonCurrentItems);
 }
 
