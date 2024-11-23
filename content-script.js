@@ -414,6 +414,7 @@ const buffer = {
 			return true;
 		}
 		if (pageType === "avitoDeliverCode" && symbol === "Enter") {
+			setTimeout(() => document.querySelector("div[role=dialog] footer>div>div:first-child button")?.click(), 500);
 			return true;
 		}
 		const element = document.activeElement;
