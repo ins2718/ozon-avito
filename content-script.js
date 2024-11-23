@@ -84,6 +84,7 @@ let props = {
 		avito: /^https:\/\/pvz\.avito\.ru\/?(?:\?.*)?$/, // авито - главная
 		avitoDeliver: /^https:\/\/pvz\.avito\.ru\/deliver\/?(?:\?.*)?$/, // авито - выдача
 		avitoDeliverRefuse: /^https:\/\/pvz\.avito\.ru\/deliver\/parcel\/\d+\/refuse\/barcode\/?(?:\?.*)?$/, // авито - отказ и ввод нового кода
+		avitoDeliverCode: /^https:\/\/pvz\.avito\.ru\/deliver\/parcel\/\d+\/?(?:\?.*)?$/, // авито - ввод кода
 		avitoDeliverAction: /^https:\/\/pvz\.avito\.ru\/deliver\/.+(?:\?.*)?$/, // авито - в процессе и после выдачи
 		avitoAccept: /^https:\/\/pvz\.avito\.ru\/accept\/?(?:\?.*)?$/, // авито - приём посылок от клиентов
 		avitoAccept2: /^https:\/\/pvz\.avito\.ru\/accept\/parcel\/\d+\/barcode\/?(?:\?.*)?$/, // авито - приём посылок от клиентов, сканирование нашего кода
@@ -265,7 +266,13 @@ const buffer = {
 				(new Audio(chrome.runtime.getURL('x.mp3'))).play();
 			}
 		} else {
-			// chrome.runtime.sendMessage({ code, type: "ozon-receive" });
+			if (this.findOzonItem(code, "income")) {
+				chrome.runtime.sendMessage({ code, type: "ozon-receive" });
+			} else if(this.findOzonItem(code, "current")) {
+				chrome.runtime.sendMessage({ code, type: "ozon-search" });
+			} else {
+				(new Audio(chrome.runtime.getURL('x.mp3'))).play();
+			}
 		}
 	},
 	findAvitoItemCategory(code) {
@@ -391,7 +398,7 @@ const buffer = {
 		}
 	},
 	isEventAccepted() {
-		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || this.getPageType() === "avitoAcceptCheckDocument") {
+		if (!this.event.isTrusted || this.event.ctrlKey || this.event.altKey || ["avitoAcceptCheckDocument", "avitoDeliverCode"].includes(this.getPageType())) {
 			return true;
 		}
 		const element = document.activeElement;
@@ -442,6 +449,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			buffer.pasteAvitoCode(message.code);
 		} else if (message.type === "ozon-receive") {
 			buffer.pasteOzonReceiveCode(message.code);
+		} else if (message.type === "ozon-search") {
+			buffer.pasteOzonReturnCode(message.code);
 		}
 		sendResponse({ response: "Message received in content script" });
 	} else if (message.action === "find-code") {

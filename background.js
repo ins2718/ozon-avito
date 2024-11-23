@@ -54,6 +54,7 @@ const props = {
 	ozonUserSummaryUrlTemplate: "^https:\\/\\/turbo-pvz\\.ozon\\.ru\\/orders\\/client-new\\/(\\d+)\\/summary\\/?(?:\\?.*)?$",
 	ozonReturnUrlTemplate: "https:\\/\\/turbo-pvz\\.ozon\\.ru\\/returns-from-customer\\/?(?:\\?.*)?$",
 	ozonReceiveUrlTemplate: "https:\\/\\/turbo-pvz.ozon.ru\\/receiving\\/(?:receive|postings)\\/?(?:\\?.*)?$",
+	ozonSearchUrlTemplate: "https:\\/\\/turbo-pvz.ozon.ru\\/search(?:.*)?$",
 };
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({ props: props });
@@ -67,6 +68,9 @@ const info = {
 		message: null
 	},
 	ozonReceive: {
+		message: null
+	},
+	ozonSearch: {
 		message: null
 	},
 	avito: {
@@ -229,6 +233,24 @@ async function sendOzonReceiveCode(code, senderTab) {
 	}
 }
 
+async function sendOzonSearchCode(code) {
+	const tabs = await chrome.tabs.query({});
+	let found = false;
+	for(const tab of tabs) {
+		if(tab.url.match(new RegExp(props.ozonSearchUrlTemplate))) {
+			chrome.tabs.update(tab.id, { active: true });
+			chrome.tabs.sendMessage(tab.id, { action: "code", code: code, type: "ozon-search" }, (response) => {});
+			found = true;
+			break;
+		}
+	}
+	if(!found) {
+		chrome.tabs.create({ url: "https://turbo-pvz.ozon.ru/search", active: true }, (tab) => {
+			info.ozonSearch.message = { tabId: tab.id, message: { action: "code", code: code, type: "ozon-search" }};
+		});
+	}
+}
+
 async function sendAvitoCode(code) {
 	const tabs = await chrome.tabs.query({});
 	let found = false;
@@ -336,6 +358,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		sendAvitoAcceptCode(message.code);
 	} else if(message.type === "avito-get") {
 		sendAvitoGetCode(message.code);
+	} else if(message.type === "ozon-search") {
+		sendOzonSearchCode(message.code);
 	}
     return true;
 });
