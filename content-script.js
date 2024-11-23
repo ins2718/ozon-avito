@@ -98,6 +98,7 @@ let props = {
 
 		ozon: /^https:\/\/turbo-pvz\.ozon\.ru\/?(?:\?.*)?$/, // озон - главная
 		ozonOrders: /^https:\/\/turbo-pvz\.ozon\.ru\/orders\/?(?:\?.*)?$/, // озон - выдача <a href="/returns-from-customer/34374314">к возвратам</a>
+		ozonOrdersSummary: /^https:\/\/turbo-pvz\.ozon\.ru\/orders\/client-new\/(\d+)\/summary\/?(?:\?.*)?$/, // озон - выдача конкретного заказа, заверщение
 		ozonOrdersAction: /^https:\/\/turbo-pvz\.ozon\.ru\/orders\/client-new\/(\d+)\/?(?:\?.*)?$/, // озон - выдача конкретного заказа
 		ozonReceive: /^https:\/\/turbo-pvz\.ozon\.ru\/receiving\/receive\/?(?:\?.*)?$/, // озон - приём отправлений
 		ozonPostings: /^https:\/\/turbo-pvz\.ozon\.ru\/receiving\/postings\/?(?:\?.*)?$/, // озон - список отправлений
@@ -122,6 +123,7 @@ const buffer = {
 	data: "",
 	lastUpdate: 0,
 	event: null,
+	waitOzonOrderCompleteCount: 0,
 	send(data) {
 		data = data ?? this.data;
 		if (!data) {
@@ -129,6 +131,7 @@ const buffer = {
 		}
 		if (data[0] === "%") {
 			setTimeout(() => updateOzonInbound(), 2000);
+			setTimeout(() => updateOzonInbound(), 10000);
 		}
 		const element = document.activeElement;
 		if (element && element.tagName === "INPUT") {
@@ -441,6 +444,18 @@ const buffer = {
 			clearTimeout(this.hTimeout);
 		}
 		this.hTimeout = setTimeout(() => (this.hTimeout = null, this.send(), this.reset()), this.timeout)
+	},
+	waitOzonOrderComplete() {
+		let item = null;
+		if (buffer.getPageType() === "ozonOrdersSummary") {
+			item = document.querySelector("div[data-testid=giveOutResultSuccessGiveOutInformer] button[type=submit]:first-child");
+		}
+		this.waitOzonOrderCompleteCount = item ? this.waitOzonOrderCompleteCount + 1 : 0;
+		if (this.waitOzonOrderCompleteCount > 1) {
+			item.click();
+			this.waitOzonOrderCompleteCount = 0;
+		}
+		setTimeout(() => this.waitOzonOrderComplete(), 30000)
 	}
 };
 
@@ -525,6 +540,7 @@ async function main() {
 	} else if (location.host === 'turbo-pvz.ozon.ru') {
 		updateOzonInbound();
 		addButton();
+		buffer.waitOzonOrderComplete();
 	}
 	navigation.addEventListener('navigate', (event) => {
 		const pageType = buffer.getPageType(event.destination.url);
