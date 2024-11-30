@@ -221,11 +221,11 @@ async function sendOzonReceiveCode(code, senderTab) {
 			break;
 		}
 	}
-	if (!found) {
-		chrome.tabs.create({ url: "https://turbo-pvz.ozon.ru/receiving/receive", active: true }, (tab) => {
-			info.ozonReceive.message = { tabId: tab.id, message: { action: "code", code: code, type: "ozon-receive" } };
-		});
-	}
+	// if (!found) {
+	// 	chrome.tabs.create({ url: "https://turbo-pvz.ozon.ru/receiving/receive", active: true }, (tab) => {
+	// 		info.ozonReceive.message = { tabId: tab.id, message: { action: "code", code: code, type: "ozon-receive" } };
+	// 	});
+	// }
 }
 
 async function sendOzonSearchCode(code) {

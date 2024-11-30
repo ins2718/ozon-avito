@@ -254,6 +254,12 @@ const buffer = {
 	},
 	enterOzonItemCode(code, pageType) {
 		if (pageType === "ozonOrdersAction") {
+			if (code[0] !== "i") {
+				const item = this.findOzonItem(code);
+				if (item) {
+					code = item.id;
+				}
+			}
 			const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e => e.innerText);
 			if (codes.includes(code)) {
 				this.send();
