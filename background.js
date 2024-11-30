@@ -212,6 +212,18 @@ async function sendOzonReturnCode(code) {
 
 async function sendOzonReceiveCode(code, senderTab) {
 	const tabs = await chrome.tabs.query({});
+	const userTabId = await findBarCodeInUserTab(code, tabs);
+	if (userTabId) {
+		chrome.tabs.update(userTabId, { active: true });
+		chrome.tabs.sendMessage(userTabId, { action: "code", code: code, type: "ozon-receive" }, (response) => { });
+		return;
+	}
+	const m = senderTab.url.match(new RegExp(props.ozonUserUrlTemplate));
+	if (m) {
+		chrome.tabs.update(senderTab.id, { active: true });
+		chrome.tabs.sendMessage(senderTab.id, { action: "code", code: code, type: "ozon-receive" }, (response) => { });
+		return;
+	}
 	let found = false;
 	for (const tab of tabs) {
 		if (tab.url.match(new RegExp(props.ozonReceiveUrlTemplate))) {
@@ -221,11 +233,11 @@ async function sendOzonReceiveCode(code, senderTab) {
 			break;
 		}
 	}
-	// if (!found) {
-	// 	chrome.tabs.create({ url: "https://turbo-pvz.ozon.ru/receiving/receive", active: true }, (tab) => {
-	// 		info.ozonReceive.message = { tabId: tab.id, message: { action: "code", code: code, type: "ozon-receive" } };
-	// 	});
-	// }
+	if (!found) {
+		chrome.tabs.create({ url: "https://turbo-pvz.ozon.ru/receiving/receive", active: true }, (tab) => {
+			info.ozonReceive.message = { tabId: tab.id, message: { action: "code", code: code, type: "ozon-receive" } };
+		});
+	}
 }
 
 async function sendOzonSearchCode(code) {
