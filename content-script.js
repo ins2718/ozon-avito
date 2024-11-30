@@ -559,14 +559,20 @@ function addAvitoButton() {
 	select.style.fontWeight = "600";
 	select.style.fontSize = "15px";
 	select.style.fontFamily = "Inter, Arial, Helvetica, sans-serif";
+	const addOption = (value, text) => {
+		const option = document.createElement("option");
+		option.value = value;
+		option.innerText = text;
+		select.appendChild(option);
+	}
+	addOption("", "Печать");
 	select.addEventListener("mousedown", async event => {
-		const waybills = await chrome.storage.local.get('avitoWaybills') ?? [];
+		const waybills = (await chrome.storage.local.get('avitoWaybills'))?.avitoWaybills ?? [];
 		console.log(waybills);
+		select.innerHTML = "";
+		addOption("", "Печать");
+		waybills.forEach(code => addOption(code, code));
 	});
-	const option = document.createElement("option");
-	option.value = "";
-	option.innerText = "Печать";
-	select.appendChild(option);
 	select.addEventListener("change", (event) => {
 		const pageType = buffer.getPageType();
 		console.log(event.target.value);

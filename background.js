@@ -36,10 +36,6 @@ const pageActions = [
 	"sendMessage",
 ];
 
-const table = [
-	[], // авито - главная
-];
-
 const props = {
 	avitoIndexUrlTemplate: "^https:\\/\\/pvz\\.avito\\.ru\\/?$",
 	avitoUrlTemplate: "^https:\\/\\/pvz\\.avito\\.ru\\/deliver\\/?(?:\\?.*)?$",
@@ -105,7 +101,9 @@ function test(message) {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// Проверяем, что статус вкладки стал "complete", что значит завершение загрузки страницы
 	if (changeInfo.status === 'complete' && tab.url) {
-		if (info.ozon.message && tab.url.match(new RegExp(props.ozonUrlTemplate))) {
+		if (tab.url === "chrome://newtab/") {
+			setTimeout(() => chrome.tabs.update(tab.id, { url: "https://turbo-pvz.ozon.ru/" }), 200);
+		} else if (info.ozon.message && tab.url.match(new RegExp(props.ozonUrlTemplate))) {
 			chrome.tabs.sendMessage(info.ozon.message.tabId, info.ozon.message.message, (response) => { });
 			info.ozon.message = null;
 		} else if (info.avito.message && tab.url.match(new RegExp(props.avitoUrlTemplate))) {
@@ -358,8 +356,12 @@ async function sendAvitoGetCode(code) {
 }
 
 async function addAvitoWaybill(code) {
-	const waybills = await chrome.storage.local.get(['avitoWaybills']) ?? [];
-	await chrome.storage.set({ avitoWaybills: [...waybills, code] });
+	const avitoWaybills = (await chrome.storage.local.get("avitoWaybills"))?.avitoWaybills ?? [];
+	if (avitoWaybills.length > 5) {
+		avitoWaybills.shift();
+	}
+	avitoWaybills.push(code);
+	await chrome.storage.local.set({ avitoWaybills });
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
