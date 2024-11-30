@@ -597,7 +597,7 @@ function addAvitoButton() {
 async function main() {
 	avitoItems = (await chrome.storage.local.get("avitoItems"))?.avitoItems ?? {};
 	ozonItems = (await chrome.storage.local.get("ozonItems"))?.ozonItems ?? {};
-	ozonCurrentItems = (await chrome.storage.local.get("ozonCurrentItems"))?.ozonItems ?? {};
+	ozonCurrentItems = (await chrome.storage.local.get("ozonCurrentItems"))?.ozonCurrentItems ?? {};
 	if (location.host === 'pvz.avito.ru') {
 		const resp = await fetch("https://pvz.avito.ru/service-abd-oper-facade/web/1/parcels/get-in-point", {
 			method: "POST",
