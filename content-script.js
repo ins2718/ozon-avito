@@ -261,7 +261,6 @@ const buffer = {
 					realCode = item.name[0];
 				}
 			}
-			console.log(code, realCode);
 			const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e => e.innerText);
 			if (codes.includes(realCode)) {
 				this.send();
@@ -505,8 +504,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		}
 		sendResponse({ response: "Message received in content script" });
 	} else if (message.action === "find-code") {
+		let realCode = message.code;
+		if (code[0] !== "i") {
+			const item = this.findOzonItem(code);
+			if (item) {
+				realCode = item.name[0];
+			}
+		}
 		const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e => e.innerText);
-		sendResponse({ response: codes.includes(message.code) });
+		sendResponse({ response: codes.includes(realCode) });
 	}
 });
 
