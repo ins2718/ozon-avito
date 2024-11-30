@@ -212,12 +212,6 @@ async function sendOzonReturnCode(code) {
 
 async function sendOzonReceiveCode(code, senderTab) {
 	const tabs = await chrome.tabs.query({});
-	const m = senderTab.url.match(new RegExp(props.ozonUserUrlTemplate));
-	if (m) {
-		chrome.tabs.update(senderTab.id, { active: true });
-		chrome.tabs.sendMessage(senderTab.id, { action: "code", code: code, type: "ozon-receive" }, (response) => { });
-		return;
-	}
 	let found = false;
 	for (const tab of tabs) {
 		if (tab.url.match(new RegExp(props.ozonReceiveUrlTemplate))) {
