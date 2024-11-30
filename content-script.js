@@ -254,14 +254,16 @@ const buffer = {
 	},
 	enterOzonItemCode(code, pageType) {
 		if (pageType === "ozonOrdersAction") {
+			let realCode = code;
 			if (code[0] !== "i") {
 				const item = this.findOzonItem(code);
 				if (item) {
-					code = item.id;
+					realCode = item.id;
 				}
 			}
+			console.log(code, realCode);
 			const codes = Array.from(document.querySelectorAll("table tr td:nth-child(2) span")).map(e => e.innerText);
-			if (codes.includes(code)) {
+			if (codes.includes(realCode)) {
 				this.send();
 			} else {
 				chrome.runtime.sendMessage({ code, type: "ozon-receive", sendBack: true });
