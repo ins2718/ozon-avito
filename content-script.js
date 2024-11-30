@@ -258,7 +258,7 @@ const buffer = {
 			if (code[0] !== "i") {
 				const item = this.findOzonItem(code);
 				if (item) {
-					realCode = item.id;
+					realCode = item.name[0];
 				}
 			}
 			console.log(code, realCode);
