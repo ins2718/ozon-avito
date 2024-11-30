@@ -270,7 +270,7 @@ const buffer = {
 		} else if (pageType === "ozonOutbound") {
 			const item = document.querySelector("div[tabindex] input:not([readonly])");
 			console.log(item, code);
-			if(item) {
+			if (item) {
 				let x = "";
 				code.split("").forEach((symbol) => {
 					x += symbol;
@@ -434,9 +434,12 @@ const buffer = {
 				return true;
 			}
 		}
-		let template = /^[\d\*\%\wА-Яа-я-]$/;
+		let template = /^[\d\*\%iIшШ-]$/;
 		if (this.getPageType() === "avitoAcceptCheckDocument") {
 			template = /^[\d\*\%A-Z<А-Я]$/;
+		}
+		if (this.data.match(/^%\d{2}%-/)) {
+			template = /^[\d\*\%\wа-яА-Я-]$/;
 		}
 		if (symbol.match(template) || symbol === "Enter") {
 			return false;
@@ -448,8 +451,10 @@ const buffer = {
 		if (this.isEventAccepted()) {
 			return;
 		}
-		event.stopImmediatePropagation();
-		event.preventDefault();
+		if (['pvz.avito.ru', 'turbo-pvz.ozon.ru'].includes(location.host)) {
+			event.stopImmediatePropagation();
+			event.preventDefault();
+		}
 		const symbol = event.key;
 		if (symbol === "Enter") {
 			this.checkCode();
@@ -561,7 +566,7 @@ async function main() {
 	navigation.addEventListener('navigate', (event) => {
 		const pageType = buffer.getPageType(event.destination.url);
 		if (pageType === "avitoAccept3") {
-			setTimeout(() => clickDownload(), 1000);
+			// setTimeout(() => clickDownload(), 1000);
 		}
 		const pluginButton = document.getElementById("plugin-button");
 		if (pluginButton) {
