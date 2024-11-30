@@ -560,7 +560,7 @@ function addAvitoButton() {
 	select.style.fontSize = "15px";
 	select.style.fontFamily = "Inter, Arial, Helvetica, sans-serif";
 	select.addEventListener("mousedown", async event => {
-		const waybills = await chrome.storage.get('avitoWaybills') ?? [];
+		const waybills = await chrome.storage.local.get('avitoWaybills') ?? [];
 		console.log(waybills);
 	});
 	const option = document.createElement("option");
