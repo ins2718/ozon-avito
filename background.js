@@ -359,7 +359,7 @@ async function sendAvitoGetCode(code) {
 
 async function addAvitoWaybill(code) {
 	const waybills = await chrome.storage.local.get(['avitoWaybills']) ?? [];
-	await chrome.storage.set([...waybills, code]);
+	await chrome.storage.set({ avitoWaybills: [...waybills, code] });
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
