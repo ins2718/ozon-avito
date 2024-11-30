@@ -239,13 +239,13 @@ const buffer = {
 	},
 	findOzonItem(code, type = "all") {
 		if (type === "all" || type === "income") {
-			const result = ozonItems.articles.find((item) => item.barcode === code || item.id == code);
+			const result = ozonItems.articles?.find((item) => item.barcode === code || item.id == code);
 			if (result) {
 				return result;
 			}
 		}
 		if (type === "all" || type === "current") {
-			const result = ozonCurrentItems.remains.find((item) => item.barcode === code || item.id == code);
+			const result = ozonCurrentItems.remains?.find((item) => item.barcode === code || item.id == code);
 			if (result) {
 				return result;
 			}
@@ -543,6 +543,37 @@ function addButton() {
 	document.querySelector("body").after(button);
 }
 
+function addAvitoButton() {
+	const select = document.createElement("select");
+	select.id = "plugin-print";
+	select.style.position = "fixed";
+	select.style.left = "50%";
+	select.style.top = "0";
+	select.style.zIndex = "9999";
+	select.style.height = "44px";
+	select.style.padding = "0 16px";
+	select.style.color = "#005bff";
+	select.style.border = "none";
+	select.style.borderRadius = "8px";
+	select.style.cursor = "pointer";
+	select.style.fontWeight = "600";
+	select.style.fontSize = "15px";
+	select.style.fontFamily = "Inter, Arial, Helvetica, sans-serif";
+	select.addEventListener("mousedown", async event => {
+		const waybills = await chrome.storage.get('avitoWaybills') ?? [];
+		console.log(waybills);
+	});
+	const option = document.createElement("option");
+	option.value = "";
+	option.innerText = "Печать";
+	select.appendChild(option);
+	select.addEventListener("change", (event) => {
+		const pageType = buffer.getPageType();
+		console.log(event.target.value);
+	});
+	document.querySelector("body").after(select);
+}
+
 async function main() {
 	avitoItems = (await chrome.storage.local.get("avitoItems"))?.avitoItems ?? {};
 	ozonItems = (await chrome.storage.local.get("ozonItems"))?.ozonItems ?? {};
@@ -558,6 +589,7 @@ async function main() {
 		});
 		avitoItems = await resp.json();
 		await chrome.storage.local.set({ avitoItems });
+		addAvitoButton();
 	} else if (location.host === 'turbo-pvz.ozon.ru') {
 		updateOzonInbound();
 		addButton();
@@ -581,6 +613,14 @@ async function main() {
 				pluginButton.innerText = "К выдаче";
 			} else {
 				pluginButton.style.display = "none";
+			}
+		}
+		const pluginPrint = document.getElementById("plugin-print");
+		if (pluginPrint) {
+			if (pageType === "avito") {
+				pluginPrint.style.display = "block";
+			} else {
+				pluginPrint.style.display = "none";
 			}
 		}
 	});
