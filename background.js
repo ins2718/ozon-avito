@@ -153,7 +153,7 @@ async function findBarCodeInUserTab(code, tabs) {
 	for (const tab of tabs) {
 		const m = tab.url.match(new RegExp(props.ozonUserUrlTemplate));
 		if (m) {
-			promises.push(new Promise(resolve => chrome.tabs.sendMessage(tab.id, { action: "find-code", code: code }, response => resolve(response.response ? tab.id : null))));
+			promises.push(new Promise(resolve => chrome.tabs.sendMessage(tab.id, { action: "find-code", code: code }, response => resolve(response?.response ? tab.id : null))));
 		}
 	}
 	for (const tabId of await Promise.all(promises)) {
