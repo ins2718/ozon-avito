@@ -232,7 +232,7 @@ const buffer = {
 	},
 	enterOzonBoxCode(code, pageType) {
 		if (pageType !== "ozonReceive") {
-			chrome.runtime.sendMessage({ code, type: "ozon-receive" });
+			chrome.runtime.sendMessage({ code, type: "ozon-receive-box" });
 		} else {
 			this.send();
 		}

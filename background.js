@@ -240,6 +240,24 @@ async function sendOzonReceiveCode(code, senderTab) {
 	}
 }
 
+async function sendOzonReceiveBoxCode(code) {
+	const tabs = await chrome.tabs.query({});
+	let found = false;
+	for (const tab of tabs) {
+		if (tab.url.match(new RegExp(props.ozonReceiveUrlTemplate))) {
+			chrome.tabs.update(tab.id, { active: true });
+			chrome.tabs.sendMessage(tab.id, { action: "code", code: code, type: "ozon-receive" }, (response) => { });
+			found = true;
+			break;
+		}
+	}
+	if (!found) {
+		chrome.tabs.create({ url: "https://turbo-pvz.ozon.ru/receiving/receive", active: true }, (tab) => {
+			info.ozonReceive.message = { tabId: tab.id, message: { action: "code", code: code, type: "ozon-receive" } };
+		});
+	}
+}
+
 async function sendOzonSearchCode(code) {
 	const tabs = await chrome.tabs.query({});
 	let found = false;
@@ -373,6 +391,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		sendOzonReturnCode(message.code);
 	} else if (message.type === "ozon-receive") {
 		sendOzonReceiveCode(message.code, sender.tab);
+	} else if (message.type === "ozon-receive-box") {
+		sendOzonReceiveBoxCode(message.code, sender.tab);
 	} else if (message.type === "avito-give") {
 		sendAvitoGiveCode(message.code);
 	} else if (message.type === "avito-accept") {
