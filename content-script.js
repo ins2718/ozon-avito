@@ -88,7 +88,7 @@ let props = {
 		avitoDeliverAction: /^https:\/\/pvz\.avito\.ru\/deliver\/.+(?:\?.*)?$/, // авито - в процессе и после выдачи
 		avitoAccept: /^https:\/\/pvz\.avito\.ru\/accept\/?(?:\?.*)?$/, // авито - приём посылок от клиентов
 		avitoAccept2: /^https:\/\/pvz\.avito\.ru\/accept\/parcel\/\d+\/barcode\/?(?:\?.*)?$/, // авито - приём посылок от клиентов, сканирование нашего кода
-		avitoAccept3: /^https:\/\/pvz\.avito\.ru\/accept\/parcel\/\d+\/waybill\/?(?:\?.*)?$/, // авито - приём посылок от клиентов, печать накладной
+		avitoAccept3: /^https:\/\/pvz\.avito\.ru\/accept\/parcel\/(\d+)\/waybill\/?(?:\?.*)?$/, // авито - приём посылок от клиентов, печать накладной
 		avitoAcceptCheckDocument: /^https:\/\/pvz\.avito\.ru\/accept\/parcel\/\d+\/check-document\/?(?:\?.*)?$/, // авито - приём посылок от клиентов, ввод паспорта
 		avitoAcceptAction: /^https:\/\/pvz\.avito\.ru\/accept\/?(?:\?.*)?$/, // авито - в процессе и после приёма
 		avitoGet: /^https:\/\/pvz\.avito\.ru\/get\/?(?:.*)?$/, // авито - приём посылок от курьера
@@ -113,7 +113,7 @@ let props = {
 let avitoItems = {};
 let ozonItems = {};
 let ozonCurrentItems = {};
-chrome.storage.sync.get("props", (result) => {
+chrome.storage.local.get("props", (result) => {
 	props = { ...props, ...result.props };
 });
 
@@ -566,7 +566,10 @@ async function main() {
 	navigation.addEventListener('navigate', (event) => {
 		const pageType = buffer.getPageType(event.destination.url);
 		if (pageType === "avitoAccept3") {
-			// setTimeout(() => clickDownload(), 1000);
+			const code = event.destination.url.match(props.pageTypes.avitoAccept3);
+			if (code) {
+				chrome.runtime.sendMessage({ code: code[1], type: "add-avito-waybill" });
+			}
 		}
 		const pluginButton = document.getElementById("plugin-button");
 		if (pluginButton) {
@@ -606,3 +609,7 @@ async function updateOzonInbound() {
 }
 
 main();
+
+chrome.storage.local.get("props", (result) => {
+	props = { ...props, ...result.props };
+});

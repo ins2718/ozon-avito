@@ -57,7 +57,7 @@ const props = {
 	ozonSearchUrlTemplate: "https:\\/\\/turbo-pvz.ozon.ru\\/search(?:.*)?$",
 };
 chrome.runtime.onInstalled.addListener(() => {
-	chrome.storage.sync.set({ props: props });
+	chrome.storage.local.set({ props: props });
 });
 
 const info = {
@@ -357,6 +357,11 @@ async function sendAvitoGetCode(code) {
 	}
 }
 
+async function addAvitoWaybill(code) {
+	const waybills = await chrome.storage.local.get(['avitoWaybills']) ?? [];
+	await chrome.storage.set([...waybills, code]);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (message.type === "ozon") {
 		sendOzonCode(message.code);
@@ -374,6 +379,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		sendAvitoGetCode(message.code);
 	} else if (message.type === "ozon-search") {
 		sendOzonSearchCode(message.code);
+	} else if (message.type === "add-avito-waybill") {
+		addAvitoWaybill(message.code);
 	}
 	return true;
 });
