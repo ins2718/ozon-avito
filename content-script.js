@@ -505,8 +505,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		sendResponse({ response: "Message received in content script" });
 	} else if (message.action === "find-code") {
 		let realCode = message.code;
-		if (code[0] !== "i") {
-			const item = this.findOzonItem(code);
+		if (realCode[0] !== "i") {
+			const item = this.findOzonItem(realCode);
 			if (item) {
 				realCode = item.name[0];
 			}
