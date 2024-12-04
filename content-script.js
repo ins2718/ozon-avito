@@ -73,7 +73,7 @@ let props = {
 		passportNationalRu: /^ЗТКГЫ([\dА-Я]{39})\s*(\d{9})\dКГЫ\d{6}\d[ЬАБ][\dБЩ]{7}\d[\dБЩ]{15}$/,
 		ozonCodeTemplate: /^\d{8,}\*\d{4}$/,
 		ozonBoxCodeTemplate: /^%\d{3}%\d{11}$/,
-		ozonSmallCodeTemplate: /^[iI]{2}\d{10}$/,
+		ozonSmallCodeTemplate: /^[iI]{2}\d{9,10}$/,
 		ozonSmallCodeRuTemplate: /^[Шш]{2}\d{10}$/,
 		ozonLargeCodeTemplate: /^\d{15}$/,
 		avitoCodeTemplate: /^\d{10}$/,
