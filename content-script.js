@@ -74,7 +74,7 @@ let props = {
 		ozonCodeTemplate: /^\d{8,}\*\d{4}$/,
 		ozonBoxCodeTemplate: /^%\d{3}%\d{11}$/,
 		ozonSmallCodeTemplate: /^[iI]{2}\d{9,10}$/,
-		ozonSmallCodeRuTemplate: /^[Шш]{2}\d{10}$/,
+		ozonSmallCodeRuTemplate: /^[Шш]{2}\d{9,10}$/,
 		ozonLargeCodeTemplate: /^\d{15}$/,
 		avitoCodeTemplate: /^\d{10}$/,
 		avitoGetTemplate: /^%\d{2}%-\w{2}\d{2}-\d{7}$/,
